@@ -6,83 +6,83 @@
 
 @layer base {
   :root {
-    /* Light theme colors */
-    --background: 245 245 250; /* #F5F5FA */
-    --foreground: 30 30 47; /* #1E1E2F */
+    /* Light purple theme colors */
+    --background: 320 50% 98%; /* Light purple background */
+    --foreground: 260 15% 15%; /* Dark purple text */
 
-    --card: 237 233 247; /* #EDE9F7 */
-    --card-foreground: 30 30 47; /* #1E1E2F */
+    --card: 320 40% 95%; /* Light purple cards */
+    --card-foreground: 260 15% 15%;
 
-    --popover: 245 245 250;
-    --popover-foreground: 30 30 47;
+    --popover: 320 50% 98%;
+    --popover-foreground: 260 15% 15%;
 
-    --primary: 271 66% 54%; /* #8A2BE2 */
+    --primary: 280 100% 70%; /* Bright purple */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 271 66% 70%; /* #A678F0 hover */
-    --secondary-foreground: 30 30 47;
+    --secondary: 290 60% 85%; /* Light purple secondary */
+    --secondary-foreground: 260 15% 15%;
 
-    --muted: 250 42% 58%; /* #5C5C7A */
-    --muted-foreground: 250 42% 58%;
+    --muted: 270 20% 65%; /* Muted purple */
+    --muted-foreground: 270 20% 45%;
 
-    --accent: 271 66% 54%;
+    --accent: 280 100% 70%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 70% 58%; /* #E74C3C */
+    --destructive: 0 70% 58%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 122 39% 49%; /* #4CAF50 */
+    --success: 122 39% 49%;
     --success-foreground: 0 0% 100%;
 
-    --border: 250 28% 84%; /* #D3D0E5 */
-    --input: 250 28% 84%;
-    --ring: 271 66% 54%;
+    --border: 320 30% 85%; /* Light purple borders */
+    --input: 320 30% 90%;
+    --ring: 280 100% 70%;
 
     --radius: 0.75rem;
 
-    /* Custom gradients */
-    --gradient-card: linear-gradient(135deg, hsl(237, 29%, 91%), hsl(245, 54%, 85%));
-    --gradient-primary: linear-gradient(135deg, hsl(271, 66%, 54%), hsl(271, 66%, 70%));
-    --card-shadow: 0 4px 12px rgba(138, 43, 226, 0.15);
+    /* Purple gradients */
+    --gradient-card: linear-gradient(135deg, hsl(320, 40%, 95%), hsl(310, 50%, 90%));
+    --gradient-primary: linear-gradient(135deg, hsl(280, 100%, 70%), hsl(290, 80%, 75%));
+    --card-shadow: 0 4px 12px rgba(147, 51, 234, 0.2);
   }
 
   .dark {
-    /* Dark theme colors */
-    --background: 30 30 47; /* #1E1E2F */
-    --foreground: 224 224 224; /* #E0E0E0 */
+    /* Dark black/blue theme with shiny purple accents */
+    --background: 220 30% 8%; /* Very dark blue-black */
+    --foreground: 280 15% 90%; /* Light purple-white text */
 
-    --card: 44 44 62; /* #2C2C3E */
-    --card-foreground: 224 224 224;
+    --card: 220 25% 12%; /* Dark blue-black cards */
+    --card-foreground: 280 15% 90%;
 
-    --popover: 30 30 47;
-    --popover-foreground: 224 224 224;
+    --popover: 220 30% 8%;
+    --popover-foreground: 280 15% 90%;
 
-    --primary: 271 66% 54%; /* #8A2BE2 */
-    --primary-foreground: 0 0% 100%;
+    --primary: 280 100% 80%; /* Shiny bright purple */
+    --primary-foreground: 220 30% 8%;
 
-    --secondary: 271 48% 66%; /* #9B59B6 hover */
-    --secondary-foreground: 224 224 224;
+    --secondary: 270 60% 25%; /* Dark purple secondary */
+    --secondary-foreground: 280 15% 90%;
 
-    --muted: 216 18% 69%; /* #A0A0B0 */
-    --muted-foreground: 216 18% 69%;
+    --muted: 250 15% 40%; /* Muted purple-gray */
+    --muted-foreground: 250 15% 60%;
 
-    --accent: 271 66% 54%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 280 100% 80%; /* Shiny purple accent */
+    --accent-foreground: 220 30% 8%;
 
-    --destructive: 0 70% 58%; /* #E74C3C */
+    --destructive: 0 70% 58%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 122 39% 49%; /* #4CAF50 */
+    --success: 122 39% 49%;
     --success-foreground: 0 0% 100%;
 
-    --border: 236 22% 30%; /* #3A3A4E */
-    --input: 236 22% 30%;
-    --ring: 271 66% 54%;
+    --border: 240 20% 20%; /* Dark blue-purple borders */
+    --input: 240 20% 15%;
+    --ring: 280 100% 80%;
 
-    /* Dark gradients */
-    --gradient-card: linear-gradient(135deg, hsl(232, 17%, 22%), hsl(248, 44%, 36%));
-    --gradient-primary: linear-gradient(135deg, hsl(271, 66%, 54%), hsl(271, 48%, 66%));
-    --card-shadow: 0 4px 12px rgba(138, 43, 226, 0.3);
+    /* Dark gradients with shiny purple */
+    --gradient-card: linear-gradient(135deg, hsl(220, 25%, 12%), hsl(240, 30%, 18%));
+    --gradient-primary: linear-gradient(135deg, hsl(280, 100%, 80%), hsl(270, 90%, 75%));
+    --card-shadow: 0 4px 20px rgba(167, 120, 240, 0.4);
   }
 
   * {
