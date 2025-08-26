@@ -6,13 +6,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
-interface Comment {
+export interface Comment {
   id: string;
-  content: string;
-  author: {
-    name: string;
-    id: string;
-  };
+  text: string;
+  creatorName: string,
   createdAt: string;
 }
 
@@ -27,16 +24,22 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     fetchComments();
-  }, [postId]);
+  }, [postId,isSubmitting]);
 
   const fetchComments = async () => {
     try {
-      const response = await fetch(`/api/posts/${postId}/comments`);
+      const response = await fetch(`${API_URL}/blogPosts/${postId}/comments`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+      });
+
       if (response.ok) {
         const data = await response.json();
+        console.log(data)
         setComments(data);
       }
     } catch (error) {
@@ -52,13 +55,16 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(`/api/posts/${postId}/comments`, {
+      const response = await fetch(`${API_URL}/api/Comments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
-        body: JSON.stringify({ content: newComment })
+        body: JSON.stringify({
+          Text: newComment,       
+          BlogPostId: postId,     
+        }),
       });
 
       if (response.ok) {
@@ -69,6 +75,10 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
           title: "Comment added",
           description: "Your comment has been posted successfully.",
         });
+      } else {
+        const error = await response.json();
+        console.error('Error response:', error);
+        throw new Error('Failed to post comment');
       }
     } catch (error) {
       toast({
@@ -100,8 +110,8 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
               rows={3}
               className="bg-background/50"
             />
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={!newComment.trim() || isSubmitting}
               className="bg-gradient-primary hover:opacity-90"
             >
@@ -138,16 +148,18 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
                 <div className="flex items-center space-x-4 mb-3 text-sm text-muted-foreground">
                   <div className="flex items-center space-x-1">
                     <User className="h-4 w-4" />
-                    <span className="font-medium">{comment.author.name}</span>
+
+                    <span className="font-medium">{comment.creatorName || 'Unknown'}</span>
+                   
                   </div>
                   <div className="flex items-center space-x-1">
                     <Calendar className="h-4 w-4" />
-                    <span>{new Date(comment.createdAt).toLocaleDateString()}</span>
+                    <span>{comment.createdAt ? new Date(comment.createdAt).toLocaleDateString() : '-'}</span>
                   </div>
                 </div>
-                
+
                 <p className="text-card-foreground leading-relaxed">
-                  {comment.content}
+                  {comment.text}
                 </p>
               </div>
             ))

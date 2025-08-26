@@ -9,8 +9,9 @@ import { useToast } from '@/hooks/use-toast';
 
 export const RegisterForm: React.FC = () => {
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
+  const [name, setName] = useState(''); 
   const [password, setPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
   const { register } = useAuth();
@@ -22,7 +23,7 @@ export const RegisterForm: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await register(email, password, displayName);
+      await register(email, username, name, password); 
       toast({
         title: "Account created!",
         description: "Welcome to BlogTalks! You can now start sharing your thoughts.",
@@ -54,13 +55,13 @@ export const RegisterForm: React.FC = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="displayName">Display Name</Label>
+              <Label htmlFor="name">Full Name</Label>
               <Input
-                id="displayName"
+                id="name"
                 type="text"
-                placeholder="Your display name"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Your full name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 required
                 className="bg-background/50"
               />
@@ -80,6 +81,19 @@ export const RegisterForm: React.FC = () => {
             </div>
             
             <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                type="text"
+                placeholder="Choose a username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                className="bg-background/50"
+              />
+            </div>
+            
+            <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
@@ -88,7 +102,7 @@ export const RegisterForm: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={6}
+                minLength={8}
                 className="bg-background/50"
               />
             </div>
@@ -115,3 +129,4 @@ export const RegisterForm: React.FC = () => {
     </div>
   );
 };
+export default RegisterForm;

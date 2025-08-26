@@ -7,69 +7,43 @@ import { BlogCard } from '@/components/BlogCard';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface BlogPost {
-  id: string;
+  id: number;
   title: string;
-  content: string;
-  author: {
-    name: string;
-    id: string;
-  };
-  createdAt: string;
+  text: string;
   tags: string[];
-  commentCount: number;
+  creatorName: string;
+  createdAt: string;
+  comments: Comment[];
 }
 
 export const HomePage: React.FC = () => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [totalPages, setTotalPages] = useState(9);
   const { user } = useAuth();
+  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     fetchPosts();
   }, [currentPage]);
 
   const fetchPosts = async () => {
+    setIsLoading(true);
     try {
-      const response = await fetch(`/api/posts?page=${currentPage}&limit=9`);
+      const response = await fetch(`${API_URL}/api/BlogPosts?pageNumber=${currentPage}`);
       if (response.ok) {
         const data = await response.json();
-        setPosts(data.posts);
-        setTotalPages(data.totalPages);
+
+        setPosts(Array.isArray(data.blogPosts) ? data.blogPosts : []);
+        setTotalPages(data.metadata?.totalPages || 1);
+      } else {
+        console.error("Failed to fetch posts:", response.statusText);
+        setPosts([]);
       }
     } catch (error) {
       console.error('Error fetching posts:', error);
-      // Mock data for development
-      setPosts([
-        {
-          id: '1',
-          title: 'Welcome to BlogTalks',
-          content: 'This is your new blogging platform where you can share your thoughts, ideas, and stories with the world. Start writing today and connect with other bloggers!',
-          author: { name: 'BlogTalks Team', id: 'system' },
-          createdAt: new Date().toISOString(),
-          tags: ['welcome', 'blogging', 'community'],
-          commentCount: 0
-        },
-        {
-          id: '2',
-          title: 'The Art of Writing',
-          content: 'Writing is one of the most powerful forms of expression. Whether you\'re crafting a story, sharing knowledge, or expressing your thoughts, every word matters.',
-          author: { name: 'Jane Writer', id: '2' },
-          createdAt: new Date(Date.now() - 86400000).toISOString(),
-          tags: ['writing', 'creativity', 'inspiration'],
-          commentCount: 5
-        },
-        {
-          id: '3',
-          title: 'Building Community Through Stories',
-          content: 'Stories have the unique ability to bring people together. They create connections, spark conversations, and build understanding between diverse individuals.',
-          author: { name: 'Community Builder', id: '3' },
-          createdAt: new Date(Date.now() - 172800000).toISOString(),
-          tags: ['community', 'storytelling', 'connection'],
-          commentCount: 12
-        }
-      ]);
+      setPosts([]);
     } finally {
       setIsLoading(false);
     }
@@ -90,7 +64,7 @@ export const HomePage: React.FC = () => {
               Every story matters, every voice counts.
             </p>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             {user ? (
               <Button asChild size="lg" className="bg-gradient-primary hover:opacity-90">
@@ -102,7 +76,7 @@ export const HomePage: React.FC = () => {
             ) : (
               <>
                 <Button asChild size="lg" className="bg-gradient-primary hover:opacity-90">
-                  <Link to="/register">
+                  <Link to="/create">
                     <PenTool className="h-5 w-5 mr-2" />
                     Start Blogging
                   </Link>
@@ -119,7 +93,7 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Featured Posts */}
+      
       <section>
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-3xl font-bold text-foreground">Latest Posts</h2>
@@ -132,22 +106,23 @@ export const HomePage: React.FC = () => {
         </div>
 
         {isLoading ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Card key={i} className="bg-gradient-card shadow-card animate-pulse">
-                <div className="p-6 space-y-4">
-                  <div className="h-6 bg-muted rounded w-3/4"></div>
-                  <div className="h-4 bg-muted rounded w-1/2"></div>
-                  <div className="space-y-2">
-                    <div className="h-4 bg-muted rounded"></div>
-                    <div className="h-4 bg-muted rounded"></div>
-                    <div className="h-4 bg-muted rounded w-2/3"></div>
-                  </div>
-                </div>
-              </Card>
-            ))}
+  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+    {Array.from({ length: totalPages }, (_, i) => (
+      <Card key={i} className="bg-gradient-card shadow-card animate-pulse">
+        <div className="p-6 space-y-4">
+          <div className="h-6 bg-muted rounded w-3/4"></div>
+          <div className="h-4 bg-muted rounded w-1/2"></div>
+          <div className="space-y-2">
+            <div className="h-4 bg-muted rounded"></div>
+            <div className="h-4 bg-muted rounded"></div>
+            <div className="h-4 bg-muted rounded w-2/3"></div>
           </div>
-        ) : posts.length === 0 ? (
+        </div>
+      </Card>
+    ))}
+  </div>
+) : posts.length === 0 ? (
+
           <Card className="bg-gradient-card shadow-card">
             <CardContent className="py-16 text-center">
               <PenTool className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />

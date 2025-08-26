@@ -7,16 +7,14 @@ import { Button } from '@/components/ui/button';
 import { CommentSection } from './CommentSection';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from "react-router-dom";
 
 interface BlogPost {
   id: string;
   title: string;
-  content: string;
-  author: {
-    name: string;
-    id: string;
-  };
-  createdAt: string;
+  text: string;
+  creatorName : string;
+  timestamp: string;
   updatedAt: string;
   tags: string[];
 }
@@ -27,24 +25,32 @@ export const PostDetail: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  const API_URL = import.meta.env.VITE_API_URL;
+  const [ isAuthor, setAuthor ] = useState(false); 
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchPost();
-  }, [id]);
+  }, [id, isAuthor]);
 
   const fetchPost = async () => {
     try {
-      const response = await fetch(`/api/posts/${id}`);
+      const response = await fetch(`${API_URL}/api/BlogPosts/${id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+
       if (response.ok) {
         const data = await response.json();
+        console.log(data)
+        setAuthor(String(data.createdBy) === String(user?.userId));
         setPost(data);
       }
     } catch (error) {
       console.error('Error fetching post:', error);
       toast({
-        title: "Error",
-        description: "Failed to load post.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load post.',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -55,26 +61,25 @@ export const PostDetail: React.FC = () => {
     if (!window.confirm('Are you sure you want to delete this post?')) return;
 
     try {
-      const response = await fetch(`/api/posts/${id}`, {
+      const response = await fetch(`${API_URL}/api/BlogPosts/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
       });
 
       if (response.ok) {
         toast({
-          title: "Post deleted",
-          description: "Your post has been deleted successfully.",
+          title: 'Post deleted',
+          description: 'Your post has been deleted successfully.',
         });
-        // Navigate back to home
-        window.location.href = '/';
+          navigate('/'); 
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to delete post.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to delete post.',
+        variant: 'destructive',
       });
     }
   };
@@ -117,9 +122,8 @@ export const PostDetail: React.FC = () => {
     );
   }
 
-  const isAuthor = user?.id === post.author.id;
-
   return (
+
     <div className="max-w-4xl mx-auto space-y-6">
       <Card className="bg-gradient-card shadow-card border border-border">
         <CardHeader>
@@ -128,26 +132,28 @@ export const PostDetail: React.FC = () => {
               <h1 className="text-3xl font-bold text-card-foreground mb-4 leading-tight">
                 {post.title}
               </h1>
-              
+
               <div className="flex items-center space-x-6 text-sm text-muted-foreground">
                 <div className="flex items-center space-x-2">
                   <User className="h-4 w-4" />
-                  <span>{post.author.name}</span>
+                  <span>{post.creatorName?? 'Unknown'}</span>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
-                  <Calendar className="h-4 w-4" />
-                  <span>{new Date(post.createdAt).toLocaleDateString()}</span>
-                </div>
-                
-                {post.updatedAt !== post.createdAt && (
-                  <span className="text-xs">
-                    Updated {new Date(post.updatedAt).toLocaleDateString()}
-                  </span>
-                )}
+                <Calendar className="h-4 w-4" />
+                <span>
+                  {post.timestamp ? new Date(post.timestamp).toLocaleDateString() : '-'}
+                </span>
+              </div>
+
+              {post.updatedAt && post.updatedAt !== post.timestamp && (
+                <span className="text-xs">
+                  Updated {new Date(post.updatedAt).toLocaleDateString()}
+                </span>
+              )}
+
               </div>
             </div>
-            
             {isAuthor && (
               <div className="flex space-x-2">
                 <Button variant="outline" size="icon" asChild>
@@ -161,7 +167,7 @@ export const PostDetail: React.FC = () => {
               </div>
             )}
           </div>
-          
+
           <div className="flex flex-wrap gap-2 mt-4">
             {post.tags.map((tag) => (
               <Badge key={tag} variant="secondary">
@@ -174,7 +180,7 @@ export const PostDetail: React.FC = () => {
 
         <CardContent>
           <div className="prose prose-lg max-w-none text-card-foreground">
-            {post.content.split('\n\n').map((paragraph, index) => (
+            {post.text.split('\n\n').map((paragraph, index) => (
               <p key={index} className="mb-4 leading-relaxed">
                 {paragraph}
               </p>
@@ -183,7 +189,7 @@ export const PostDetail: React.FC = () => {
         </CardContent>
       </Card>
 
-      <CommentSection postId={post.id} />
+      {post && <CommentSection postId={post.id} />}
     </div>
   );
 };

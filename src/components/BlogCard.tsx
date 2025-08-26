@@ -4,17 +4,15 @@ import { Calendar, User, MessageCircle, Tag } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
-interface BlogPost {
-  id: string;
+// Exportirame BlogPost za da možeme da go importirame vo SearchPage
+export interface BlogPost {
+  id: number;
   title: string;
-  content: string;
-  author: {
-    name: string;
-    id: string;
-  };
+  text: string;     
+  tags: string[];      
+  creatorName: string;    
   createdAt: string;
-  tags: string[];
-  commentCount: number;
+  comments: Comment[];
 }
 
 interface BlogCardProps {
@@ -22,10 +20,10 @@ interface BlogCardProps {
 }
 
 export const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
-  const excerpt = post.content.length > 150 
-    ? post.content.substring(0, 150) + '...' 
-    : post.content;
-
+  const excerpt = post.text.length > 150 
+    ? post.text.substring(0, 150) + '...' 
+    : post.text;
+   
   return (
     <Card className="bg-gradient-card shadow-card hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border border-border">
       <CardHeader>
@@ -39,17 +37,17 @@ export const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
         <div className="flex items-center space-x-4 text-sm text-muted-foreground">
           <div className="flex items-center space-x-1">
             <User className="h-4 w-4" />
-            <span>{post.author.name}</span>
+            <span>{post.creatorName}</span>
           </div>
           
           <div className="flex items-center space-x-1">
             <Calendar className="h-4 w-4" />
-            <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+            <span> { post.createdAt ? new Date(post.createdAt).toLocaleDateString() : '-'}</span>
           </div>
           
           <div className="flex items-center space-x-1">
             <MessageCircle className="h-4 w-4" />
-            <span>{post.commentCount}</span>
+            <span>{post.comments.length}</span>
           </div>
         </div>
       </CardHeader>
@@ -85,3 +83,4 @@ export const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
     </Card>
   );
 };
+export default BlogCard;

@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const CreatePostForm: React.FC = () => {
   const [title, setTitle] = useState('');
@@ -15,13 +16,17 @@ export const CreatePostForm: React.FC = () => {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
+
+  const API_URL = import.meta.env.VITE_API_URL;
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { token } = useAuth();
 
   const addTag = () => {
-    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
-      setTags([...tags, tagInput.trim()]);
+    const newTag = tagInput.trim();
+    if (newTag && !tags.includes(newTag)) {
+      setTags([...tags, newTag]);
       setTagInput('');
     }
   };
@@ -35,29 +40,44 @@ export const CreatePostForm: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/posts', {
+      if (!token) throw new Error('You must be logged in to create a post');
+
+      const response = await fetch(`${API_URL}/api/BlogPosts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ title, content, tags })
+        body: JSON.stringify({
+          Title: title,
+          Text: content,
+          Tags: tags
+        })
       });
 
-      if (response.ok) {
-        toast({
-          title: "Post created!",
-          description: "Your blog post has been published successfully.",
-        });
-        navigate('/');
-      } else {
-        throw new Error('Failed to create post');
+      if (!response.ok) {
+        let errorMessage = `Failed to create post (status ${response.status})`;
+        try {
+          const errorData = await response.json();
+          if (errorData?.message) errorMessage = errorData.message;
+        } catch {
+          console.warn("No JSON body in error response");
+        }
+        throw new Error(errorMessage);
       }
+
+      const successData = await response.json();
+      toast({
+        title: successData?.message || "Post created!",
+        description: successData?.id ? `Post ID: ${successData.id}` : undefined
+      });
+
+      navigate('/');
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to create post. Please try again.",
-        variant: "destructive",
+        description: (error as Error).message,
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
@@ -72,7 +92,7 @@ export const CreatePostForm: React.FC = () => {
             Create New Post
           </CardTitle>
         </CardHeader>
-        
+
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
@@ -87,7 +107,7 @@ export const CreatePostForm: React.FC = () => {
                 className="bg-background/50 text-lg"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="content">Content</Label>
               <Textarea
@@ -100,7 +120,7 @@ export const CreatePostForm: React.FC = () => {
                 className="bg-background/50 resize-none"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="tags">Tags</Label>
               <div className="flex gap-2">
@@ -113,13 +133,11 @@ export const CreatePostForm: React.FC = () => {
                   onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
                   className="bg-background/50"
                 />
-                <Button type="button" onClick={addTag} variant="outline">
-                  Add
-                </Button>
+                <Button type="button" onClick={addTag} variant="outline">Add</Button>
               </div>
-              
+
               <div className="flex flex-wrap gap-2 mt-2">
-                {tags.map((tag) => (
+                {tags.map(tag => (
                   <Badge key={tag} variant="secondary" className="px-3 py-1">
                     {tag}
                     <button
@@ -133,19 +151,19 @@ export const CreatePostForm: React.FC = () => {
                 ))}
               </div>
             </div>
-            
+
             <div className="flex gap-4">
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="bg-gradient-primary hover:opacity-90 flex-1"
                 disabled={isLoading}
               >
                 {isLoading ? 'Publishing...' : 'Publish Post'}
               </Button>
-              
-              <Button 
-                type="button" 
-                variant="outline" 
+
+              <Button
+                type="button"
+                variant="outline"
                 onClick={() => navigate('/')}
                 className="flex-1"
               >

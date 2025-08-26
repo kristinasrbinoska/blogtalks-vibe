@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 interface BlogPost {
   id: string;
   title: string;
-  content: string;
+  text: string;   
   tags: string[];
 }
 
@@ -25,7 +25,8 @@ export const EditPostForm: React.FC = () => {
   const [tagInput, setTagInput] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const API_URL = import.meta.env.VITE_API_URL;
+
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -35,21 +36,20 @@ export const EditPostForm: React.FC = () => {
 
   const fetchPost = async () => {
     try {
-      const response = await fetch(`/api/posts/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+      const response = await fetch(`${API_URL}/api/BlogPosts/${id}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setPost(data);
-        setTitle(data.title);
-        setContent(data.content);
-        setTags(data.tags);
-      } else {
+
+      if (!response.ok) {
         navigate('/');
+        return;
       }
+
+      const data: BlogPost = await response.json();
+      setPost(data);
+      setTitle(data.title);
+      setContent(data.text);
+      setTags(data.tags || []); // <-- directly set fetched tags
     } catch (error) {
       console.error('Error fetching post:', error);
       navigate('/');
@@ -59,14 +59,17 @@ export const EditPostForm: React.FC = () => {
   };
 
   const addTag = () => {
-    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
-      setTags([...tags, tagInput.trim()]);
+    const newTag = tagInput.trim();
+    if (newTag && !tags.includes(newTag)) {
+      tags.push(newTag);
+      setTags(tags);
       setTagInput('');
+      console.log(tags);
     }
   };
 
   const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+    setTags(prevTags => prevTags.filter(tag => tag !== tagToRemove)); // <-- remove only this tag
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,63 +77,41 @@ export const EditPostForm: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`/api/posts/${id}`, {
+      const response = await fetch(`${API_URL}/api/BlogPosts/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ title, content, tags })
+        body: JSON.stringify({
+          title,
+          text: content,
+          tags
+        })
       });
 
-      if (response.ok) {
-        toast({
-          title: "Post updated!",
-          description: "Your blog post has been updated successfully.",
-        });
-        navigate(`/post/${id}`);
-      } else {
-        throw new Error('Failed to update post');
-      }
+      if (!response.ok) throw new Error('Failed to update post');
+
+      toast({
+        title: "Post updated!",
+        description: "Your blog post has been updated successfully."
+      });
+
+      navigate(`/post/${id}`);
     } catch (error) {
+      console.error(error);
       toast({
         title: "Error",
         description: "Failed to update post. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="max-w-4xl mx-auto">
-        <Card className="bg-gradient-card shadow-card animate-pulse">
-          <CardHeader>
-            <div className="h-8 bg-muted rounded w-1/2"></div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="h-10 bg-muted rounded"></div>
-            <div className="h-64 bg-muted rounded"></div>
-            <div className="h-10 bg-muted rounded w-1/3"></div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!post) {
-    return (
-      <div className="max-w-4xl mx-auto text-center">
-        <Card className="bg-gradient-card shadow-card">
-          <CardContent className="py-16">
-            <p className="text-muted-foreground">Post not found or you don't have permission to edit it.</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  if (isLoading) return <div>Loading...</div>;
+  if (!post) return <div>Post not found</div>;
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -140,85 +121,64 @@ export const EditPostForm: React.FC = () => {
             Edit Post
           </CardTitle>
         </CardHeader>
-        
+
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
+
+            {/* Title */}
             <div className="space-y-2">
               <Label htmlFor="title">Title</Label>
               <Input
                 id="title"
                 type="text"
-                placeholder="Enter your post title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
-                className="bg-background/50 text-lg"
               />
             </div>
-            
+
+            {/* Content */}
             <div className="space-y-2">
               <Label htmlFor="content">Content</Label>
               <Textarea
                 id="content"
-                placeholder="Write your blog post here..."
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 required
                 rows={12}
-                className="bg-background/50 resize-none"
               />
             </div>
-            
+
+            {/* Tags */}
             <div className="space-y-2">
               <Label htmlFor="tags">Tags</Label>
               <div className="flex gap-2">
                 <Input
                   id="tags"
                   type="text"
-                  placeholder="Add a tag..."
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                  className="bg-background/50"
                 />
-                <Button type="button" onClick={addTag} variant="outline">
-                  Add
-                </Button>
+                <Button type="button" onClick={addTag}>Add</Button>
               </div>
-              
               <div className="flex flex-wrap gap-2 mt-2">
-                {tags.map((tag) => (
+                {tags.map(tag => (
                   <Badge key={tag} variant="secondary" className="px-3 py-1">
                     {tag}
-                    <button
-                      type="button"
-                      onClick={() => removeTag(tag)}
-                      className="ml-2 hover:text-destructive"
-                    >
-                      <X className="h-3 w-3" />
+                    <button type="button" onClick={() => removeTag(tag)} className="ml-2">
+                      <X className="h-3 w-3"/>
                     </button>
                   </Badge>
                 ))}
               </div>
             </div>
-            
+
             <div className="flex gap-4">
-              <Button 
-                type="submit" 
-                className="bg-gradient-primary hover:opacity-90 flex-1"
-                disabled={isSubmitting}
-              >
+              <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? 'Updating...' : 'Update Post'}
               </Button>
-              
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => navigate(`/post/${id}`)}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
+              <Button type="button" onClick={() => navigate(`/post/${id}`)}>Cancel</Button>
             </div>
           </form>
         </CardContent>

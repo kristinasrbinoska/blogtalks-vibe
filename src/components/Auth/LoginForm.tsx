@@ -9,9 +9,10 @@ import { useToast } from '@/hooks/use-toast';
 
 export const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const { login } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -21,16 +22,16 @@ export const LoginForm: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await login(email, password);
+      await login(email, username, password);
       toast({
         title: "Welcome back!",
         description: "You have successfully logged in.",
       });
       navigate('/');
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Login failed",
-        description: "Please check your credentials and try again.",
+        description: error.message || "Please check your credentials.",
         variant: "destructive",
       });
     } finally {
@@ -49,7 +50,7 @@ export const LoginForm: React.FC = () => {
             Sign in to your BlogTalks account
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
@@ -61,10 +62,21 @@ export const LoginForm: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="bg-background/50"
               />
             </div>
-            
+
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                type="text"
+                placeholder="Enter your username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
@@ -74,10 +86,9 @@ export const LoginForm: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="bg-background/50"
               />
             </div>
-            
+
             <Button 
               type="submit" 
               className="w-full bg-gradient-primary hover:opacity-90"
@@ -86,7 +97,7 @@ export const LoginForm: React.FC = () => {
               {isLoading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
-          
+
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
               Don't have an account?{' '}
@@ -100,3 +111,5 @@ export const LoginForm: React.FC = () => {
     </div>
   );
 };
+
+export default LoginForm;
